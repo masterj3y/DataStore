@@ -2,37 +2,33 @@ package io.github.masterj3y
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.Text
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.setContent
-import androidx.ui.tooling.preview.Preview
-import io.github.masterj3y.ui.DataStoreTheme
+import androidx.datastore.preferences.createDataStore
+import androidx.datastore.preferences.preferencesKey
+import androidx.lifecycle.LiveData
+import kotlinx.coroutines.InternalCoroutinesApi
 
 class MainActivity : AppCompatActivity() {
+
+    private val dataStore by lazy { createDataStore(name = "ds") }
+
+    @InternalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val textLiveData: LiveData<String> = dataStore.liveData(TEXT_KEY, "null")
+
         setContent {
-            DataStoreTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    Greeting("Android")
-                }
-            }
+            AppScreen(
+                textLiveData = textLiveData,
+                onSaveClicked = { saveText(it) }
+            )
         }
     }
-}
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
+    private fun saveText(value: String) = dataStore.saveData(TEXT_KEY to value)
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    DataStoreTheme {
-        Greeting("Android")
+    companion object {
+        private val TEXT_KEY = preferencesKey<String>("text")
     }
 }
